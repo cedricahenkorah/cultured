@@ -6,8 +6,9 @@ import (
 	"strconv"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
+		app.errorLog.Println("Invalid path:", r.URL.Path)
 		http.NotFound(w, r)
 		return
 	}
@@ -15,7 +16,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("cultured is live"))
 }
 
-func getReview(w http.ResponseWriter, r *http.Request) {
+func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
 	if err != nil || id < 1 {
@@ -26,7 +27,7 @@ func getReview(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Display a specific review with ID %d...", id)
 }
 
-func createReview(w http.ResponseWriter, r *http.Request) {
+func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
 		http.Error(w, "Method Not Allowed", 405)
