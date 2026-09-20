@@ -1,0 +1,21 @@
+# Compiled binaries
+/bin/
+/build/
+*.exe
+*.out
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test and coverage output
+coverage.out
+coverage.html
+
+# IDE settings
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
