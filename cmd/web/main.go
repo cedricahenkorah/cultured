@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"cultured/pkg/pg"
 	"flag"
 	"log"
 	"net/http"
@@ -14,7 +15,7 @@ import (
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
-	db       *pgxpool.Pool
+	reviews  *pg.ReviewModel
 }
 
 func main() {
@@ -44,7 +45,7 @@ func main() {
 	app := &application{
 		errorLog: errorLog,
 		infoLog:  infoLog,
-		db:       db,
+		reviews:  &pg.ReviewModel{DB: db},
 	}
 
 	srv := &http.Server{
