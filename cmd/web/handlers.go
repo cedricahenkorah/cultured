@@ -9,7 +9,7 @@ import (
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		app.errorLog.Println("Invalid path:", r.URL.Path)
-		http.NotFound(w, r)
+		app.notFound(w)
 		return
 	}
 
@@ -20,7 +20,7 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
+		app.notFound(w)
 		return
 	}
 
@@ -30,7 +30,7 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.Header().Set("Allow", "POST")
-		http.Error(w, "Method Not Allowed", 405)
+		app.clientError(w, http.StatusMethodNotAllowed)
 		return
 	}
 
