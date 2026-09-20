@@ -1,7 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"cultured/pkg/models"
+	"encoding/json"
 	"net/http"
 	"strconv"
 )
@@ -13,7 +15,15 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("cultured is live"))
+	reviews, err := app.reviews.GetAll(context.Background())
+
+	if err != nil {
+		app.errorLog.Println(err)
+		app.serverError(w, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(reviews)
 }
 
 func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +34,17 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Display a specific review with ID %d...", id)
+	review, err := app.reviews.Get(context.Background(), int64(id))
+
+	if err == models.ErrNoRecord {
+		app.notFound(w)
+		return
+	} else if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(review)
 }
 
 func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
