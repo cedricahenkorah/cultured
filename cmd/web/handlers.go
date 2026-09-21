@@ -1,21 +1,17 @@
 package main
 
 import (
-	"context"
 	"cultured/pkg/models"
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.errorLog.Println("Invalid path:", r.URL.Path)
-		app.notFound(w)
-		return
-	}
 
-	reviews, err := app.reviews.GetAll(context.Background())
+	reviews, err := app.reviews.GetAll(r.Context())
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -27,14 +23,14 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 
 	if err != nil || id < 1 {
 		app.notFound(w)
 		return
 	}
 
-	review, err := app.reviews.Get(context.Background(), int64(id))
+	review, err := app.reviews.Get(r.Context(), id)
 
 	if err == models.ErrNoRecord {
 		app.notFound(w)
