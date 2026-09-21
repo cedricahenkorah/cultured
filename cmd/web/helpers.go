@@ -21,3 +21,7 @@ func (app *application) clientError(w http.ResponseWriter, status int) {
 func (app *application) notFound(w http.ResponseWriter) {
 	app.clientError(w, http.StatusNotFound)
 }
+
+func (app *application) authenticatedUser(r *http.Request) int64 {
+	return app.sessionManager.GetInt64(r.Context(), "userID")
+}

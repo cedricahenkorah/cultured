@@ -14,9 +14,13 @@ func (app *application) routes() http.Handler {
 
 	router.Use(app.sessionManager.LoadAndSave)
 
-	router.Get("/", app.getReviews)
-	router.Get("/review/{id}", app.getReview)
-	router.Post("/review/create", app.createReview)
+	router.Group(func(r chi.Router) {
+		r.Use(app.requireAuth)
+
+		r.Get("/", app.getReviews)
+		r.Get("/review/{id}", app.getReview)
+		r.Post("/review/create", app.createReview)
+	})
 
 	router.Post("/user/signup", app.signUp)
 	router.Post("/user/login", app.login)
