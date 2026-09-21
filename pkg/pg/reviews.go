@@ -30,9 +30,9 @@ func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating 
 func (m *ReviewModel) Get(ctx context.Context, id int64) (*models.Review, error) {
 	r := &models.Review{}
 
-	stmt := `SELECT id, title, content, rating, created_at FROM reviews WHERE id = $1`
+	stmt := `SELECT id, user_id, title, content, rating, created_at FROM reviews WHERE id = $1`
 
-	err := m.DB.QueryRow(ctx, stmt, id).Scan(&r.ID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
+	err := m.DB.QueryRow(ctx, stmt, id).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
 
 	if err == pgx.ErrNoRows {
 		return nil, models.ErrNoRecord
@@ -45,7 +45,7 @@ func (m *ReviewModel) Get(ctx context.Context, id int64) (*models.Review, error)
 
 func (m *ReviewModel) GetAll(ctx context.Context) ([]*models.Review, error) {
 	stmt := `
-    SELECT id, title, content, rating, created_at
+    SELECT id, user_id, title, content, rating, created_at
     FROM reviews
     ORDER BY created_at DESC, id DESC Limit 10
 	`
@@ -63,7 +63,7 @@ func (m *ReviewModel) GetAll(ctx context.Context) ([]*models.Review, error) {
 	for rows.Next() {
 		r := &models.Review{}
 
-		err = rows.Scan(&r.ID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
+		err = rows.Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
 
 		if err != nil {
 			return nil, err
