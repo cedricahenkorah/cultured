@@ -6,6 +6,10 @@ import (
 	"runtime/debug"
 )
 
+type contextKey string
+
+var contextKeyUser = contextKey("user")
+
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
 
@@ -24,4 +28,10 @@ func (app *application) notFound(w http.ResponseWriter) {
 
 func (app *application) authenticatedUser(r *http.Request) int64 {
 	return app.sessionManager.GetInt64(r.Context(), "userID")
+}
+
+func (app *application) getUserIDFromContext(r *http.Request) (int64, bool) {
+	userID, ok := r.Context().Value(contextKeyUser).(int64)
+
+	return userID, ok && userID > 0
 }

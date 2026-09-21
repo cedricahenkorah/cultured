@@ -76,7 +76,14 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := app.reviews.Insert(r.Context(), input.Title, input.Content, input.Rating)
+	userID, ok := app.getUserIDFromContext(r)
+
+	if !ok {
+		app.clientError(w, http.StatusUnauthorized)
+		return
+	}
+
+	id, err := app.reviews.Insert(r.Context(), input.Title, input.Content, input.Rating, userID)
 
 	if err != nil {
 		app.serverError(w, err)

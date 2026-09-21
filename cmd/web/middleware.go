@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -37,11 +38,15 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 
 func (app *application) requireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app.authenticatedUser(r) == 0 {
+		userID := app.authenticatedUser(r)
+
+		if userID == 0 {
 			app.clientError(w, http.StatusUnauthorized)
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), contextKeyUser, userID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

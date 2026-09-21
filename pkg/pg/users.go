@@ -71,5 +71,19 @@ func (m *UserModel) Authenticate(ctx context.Context, email, password string) (i
 }
 
 func (m *UserModel) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
-	return nil, nil
+	u := &models.User{}
+
+	stmt := `SELECT id, name, email, created_at, updated_at
+    FROM users
+    WHERE id = $1`
+
+	err := m.DB.QueryRow(ctx, stmt, id).Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt, &u.UpdatedAt)
+
+	if err == pgx.ErrNoRows {
+		return nil, models.ErrNoRecord
+	} else if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
