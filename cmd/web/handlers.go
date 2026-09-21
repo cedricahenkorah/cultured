@@ -15,7 +15,7 @@ type createReviewRequest struct {
 	Rating  int    `json:"rating"`
 }
 
-func (app *application) home(w http.ResponseWriter, r *http.Request) {
+func (app *application) getReviews(w http.ResponseWriter, r *http.Request) {
 	reviews, err := app.reviews.GetAll(r.Context())
 
 	if err != nil {

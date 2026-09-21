@@ -12,7 +12,7 @@ func (app *application) routes() http.Handler {
 
 	router := chi.NewRouter()
 
-	router.Get("/", app.home)
+	router.Get("/", app.getReviews)
 	router.Get("/review/{id}", app.getReview)
 	router.Post("/review/create", app.createReview)
 
