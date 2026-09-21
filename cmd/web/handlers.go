@@ -4,7 +4,9 @@ import (
 	"cultured/pkg/models"
 	"encoding/json"
 	"net/http"
+	"net/mail"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -13,6 +15,12 @@ type createReviewRequest struct {
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	Rating  int    `json:"rating"`
+}
+
+type signupRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (app *application) getReviews(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +82,37 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) signUp(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode("sign up")
+	var input signupRequest
+
+	err := json.NewDecoder(r.Body).Decode(&input)
+
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	input.Name = strings.TrimSpace(input.Name)
+	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
+
+	parsedEmail, err := mail.ParseAddress(input.Email)
+
+	if err != nil || parsedEmail.Address != input.Email {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	if input.Name == "" || len(input.Email) > 254 || len(input.Password) < 8 {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	id, err := app.users.CreateUser(r.Context(), input.Name, input.Email, input.Password)
+
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	json.NewEncoder(w).Encode(id)
 }
 
 func (app *application) login(w http.ResponseWriter, r *http.Request) {
@@ -84,3 +122,4 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 func (app *application) logout(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("logout")
 }
+1
