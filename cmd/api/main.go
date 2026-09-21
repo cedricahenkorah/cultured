@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"cultured/pkg/pg"
+	"cultured/internal/pg"
 	"flag"
 	"log"
 	"net/http"

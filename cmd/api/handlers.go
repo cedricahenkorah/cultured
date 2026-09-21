@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cultured/pkg/models"
+	"cultured/internal/models"
 	"encoding/json"
 	"net/http"
 	"net/mail"
