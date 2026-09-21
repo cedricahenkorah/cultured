@@ -18,7 +18,7 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
-		return 0, nil
+		return 0, err
 	}
 
 	stmt := `INSERT INTO users (name, email, password_hash)
@@ -34,6 +34,8 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "users_email_key" {
 			return 0, models.ErrDuplicateEmail
 		}
+
+		return 0, err
 	}
 
 	return id, nil

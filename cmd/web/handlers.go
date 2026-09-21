@@ -122,4 +122,3 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 func (app *application) logout(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode("logout")
 }
-1
