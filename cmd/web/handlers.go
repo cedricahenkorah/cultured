@@ -9,8 +9,13 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func (app *application) home(w http.ResponseWriter, r *http.Request) {
+type createReviewRequest struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	Rating  int    `json:"rating"`
+}
 
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	reviews, err := app.reviews.GetAll(r.Context())
 
 	if err != nil {
@@ -44,11 +49,26 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.Header().Set("Allow", "POST")
-		app.clientError(w, http.StatusMethodNotAllowed)
+	var input createReviewRequest
+
+	err := json.NewDecoder(r.Body).Decode(&input)
+
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
 		return
 	}
 
-	w.Write([]byte("create a new review"))
+	if input.Title == "" || input.Content == "" || input.Rating < 1 || input.Rating > 5 {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	id, err := app.reviews.Insert(r.Context(), input.Title, input.Content, input.Rating)
+
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(id)
 }
