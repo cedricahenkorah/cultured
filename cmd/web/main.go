@@ -17,6 +17,7 @@ type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
 	reviews  *pg.ReviewModel
+	users    *pg.UserModel
 }
 
 func main() {
@@ -47,6 +48,7 @@ func main() {
 		errorLog: errorLog,
 		infoLog:  infoLog,
 		reviews:  &pg.ReviewModel{DB: db},
+		users:    &pg.UserModel{DB: db},
 	}
 
 	srv := &http.Server{
