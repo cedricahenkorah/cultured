@@ -9,15 +9,18 @@ import (
 	"os"
 	"time"
 
+	"github.com/alexedwards/scs/pgxstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	reviews  *pg.ReviewModel
-	users    *pg.UserModel
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	reviews        *pg.ReviewModel
+	users          *pg.UserModel
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -44,11 +47,16 @@ func main() {
 
 	defer db.Close()
 
+	sessionManager := scs.New()
+	sessionManager.Store = pgxstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		reviews:  &pg.ReviewModel{DB: db},
-		users:    &pg.UserModel{DB: db},
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		reviews:        &pg.ReviewModel{DB: db},
+		users:          &pg.UserModel{DB: db},
+		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{

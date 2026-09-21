@@ -12,6 +12,8 @@ func (app *application) routes() http.Handler {
 
 	router := chi.NewRouter()
 
+	router.Use(app.sessionManager.LoadAndSave)
+
 	router.Get("/", app.getReviews)
 	router.Get("/review/{id}", app.getReview)
 	router.Post("/review/create", app.createReview)

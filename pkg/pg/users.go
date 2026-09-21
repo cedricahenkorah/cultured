@@ -5,6 +5,7 @@ import (
 	"cultured/pkg/models"
 	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
@@ -43,7 +44,30 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
 }
 
 func (m *UserModel) Authenticate(ctx context.Context, email, password string) (int64, error) {
-	return 0, nil
+	var (
+		id           int64
+		passwordHash string
+	)
+
+	stmt := `SELECT id, password_hash
+        FROM users
+        WHERE email = $1`
+
+	err := m.DB.QueryRow(ctx, stmt, email).Scan(&id, &passwordHash)
+
+	if err == pgx.ErrNoRows {
+		return 0, models.ErrInvalidCredentials
+	} else if err != nil {
+		return 0, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+
+	if err != nil {
+		return 0, models.ErrInvalidCredentials
+	}
+
+	return id, nil
 }
 
 func (m *UserModel) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
