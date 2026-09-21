@@ -16,6 +16,10 @@ func (app *application) routes() http.Handler {
 	router.Get("/review/{id}", app.getReview)
 	router.Post("/review/create", app.createReview)
 
+	router.Post("/user/signup", app.signUp)
+	router.Post("/user/login", app.login)
+	router.Post("/user/logout", app.logout)
+
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))

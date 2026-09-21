@@ -72,3 +72,15 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(id)
 }
+
+func (app *application) signUp(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode("sign up")
+}
+
+func (app *application) login(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode("login")
+}
+
+func (app *application) logout(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode("logout")
+}
