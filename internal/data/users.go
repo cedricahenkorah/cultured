@@ -51,7 +51,6 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
 	}
 
 	return id, nil
-
 }
 
 func (m *UserModel) Authenticate(ctx context.Context, email, password string) (int64, error) {

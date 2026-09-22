@@ -21,6 +21,7 @@ func (app *application) routes() http.Handler {
 
 		r.Get("/v1/review", app.getReviews)
 		r.Get("/v1/review/{id}", app.getReview)
+		r.Patch("/v1/review/{id}", app.updateReview)
 		r.Post("/v1/review/create", app.createReview)
 	})
 

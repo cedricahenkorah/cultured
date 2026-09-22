@@ -91,3 +91,28 @@ func (m *ReviewModel) GetAll(ctx context.Context) ([]*Review, error) {
 
 	return reviews, nil
 }
+
+func (m *ReviewModel) Update(ctx context.Context, title, content *string, rating *int, id, userID int64) (*Review, error) {
+	query := `UPDATE reviews
+SET
+    title = COALESCE($1, title),
+    content = COALESCE($2, content),
+    rating = COALESCE($3, rating),
+    updated_at = NOW()
+WHERE id = $4 AND user_id = $5
+RETURNING id, user_id, title, content, rating, created_at, updated_at;`
+
+	args := []any{title, content, rating, id, userID}
+
+	r := &Review{}
+
+	err := m.DB.QueryRow(ctx, query, args...).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
+
+	if err == pgx.ErrNoRows {
+		return nil, ErrNoRecord
+	} else if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
