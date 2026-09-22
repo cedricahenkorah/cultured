@@ -12,6 +12,8 @@ func (app *application) routes() http.Handler {
 
 	router := chi.NewRouter()
 
+	router.NotFound(app.notFound)
+
 	router.Use(app.sessionManager.LoadAndSave)
 
 	router.Group(func(r chi.Router) {

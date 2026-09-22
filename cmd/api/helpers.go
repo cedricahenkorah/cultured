@@ -34,7 +34,7 @@ func (app *application) clientError(w http.ResponseWriter, status int, message s
 	app.apiResponse(w, status, nil, message, nil)
 }
 
-func (app *application) notFound(w http.ResponseWriter) {
+func (app *application) notFound(w http.ResponseWriter, r *http.Request) {
 	app.apiResponse(w, http.StatusNotFound, nil, http.StatusText(http.StatusNotFound), nil)
 }
 

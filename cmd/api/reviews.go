@@ -33,14 +33,14 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 
 	if err != nil {
-		app.notFound(w)
+		app.notFound(w, r)
 		return
 	}
 
 	review, err := app.reviews.Get(r.Context(), id)
 
 	if err == models.ErrNoRecord {
-		app.notFound(w)
+		app.notFound(w, r)
 		return
 	} else if err != nil {
 		app.serverError(w, err)
