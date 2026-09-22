@@ -116,3 +116,23 @@ RETURNING id, user_id, title, content, rating, created_at, updated_at;`
 
 	return r, nil
 }
+
+func (m *ReviewModel) Delete(ctx context.Context, id, userID int64) error {
+	query := `DELETE FROM reviews
+	WHERE id = $1 AND user_id = $2
+	RETURNING id;`
+
+	args := []any{id, userID}
+
+	var deletedID int64
+
+	err := m.DB.QueryRow(ctx, query, args...).Scan(&deletedID)
+
+	if err == pgx.ErrNoRows {
+		return ErrNoRecord
+	} else if err != nil {
+		return err
+	}
+
+	return nil
+}

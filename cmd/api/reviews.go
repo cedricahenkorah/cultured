@@ -160,3 +160,36 @@ func (app *application) updateReview(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 	}
 }
+
+func (app *application) deleteReview(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+
+	if err != nil {
+		app.notFound(w, r)
+		return
+	}
+
+	userID, ok := app.getUserIDFromContext(r)
+
+	if !ok {
+		app.clientError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		return
+	}
+
+	err = app.models.Reviews.Delete(r.Context(), id, userID)
+
+	if err == data.ErrNoRecord {
+		app.notFound(w, r)
+		return
+	} else if err != nil {
+		app.clientError(w, http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
+		return
+	}
+
+	err = app.apiResponse(w, http.StatusOK, nil, "Review deleted", nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		app.serverError(w, err)
+	}
+}
