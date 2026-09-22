@@ -15,20 +15,27 @@ type contextKey string
 
 var contextKeyUser = contextKey("user")
 
+type apiResponse struct {
+	Status  string `json:"status"`
+	Code    int    `json:"code"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data,omitempty"`
+}
+
 func (app *application) serverError(w http.ResponseWriter, err error) {
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
 
 	app.errorLog.Output(2, trace)
 
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	app.apiResponse(w, http.StatusInternalServerError, nil, http.StatusText(http.StatusInternalServerError), nil)
 }
 
-func (app *application) clientError(w http.ResponseWriter, status int) {
-	http.Error(w, http.StatusText(status), status)
+func (app *application) clientError(w http.ResponseWriter, status int, message string) {
+	app.apiResponse(w, status, nil, message, nil)
 }
 
 func (app *application) notFound(w http.ResponseWriter) {
-	app.clientError(w, http.StatusNotFound)
+	app.apiResponse(w, http.StatusNotFound, nil, http.StatusText(http.StatusNotFound), nil)
 }
 
 func (app *application) authenticatedUser(r *http.Request) int64 {
@@ -51,8 +58,21 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
-func (app *application) apiResponse(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
-	js, err := json.Marshal(data)
+func (app *application) apiResponse(w http.ResponseWriter, code int, data any, message string, headers http.Header) error {
+	status := "success"
+
+	if code >= 400 {
+		status = "error"
+	}
+
+	response := apiResponse{
+		Status:  status,
+		Code:    code,
+		Message: message,
+		Data:    data,
+	}
+
+	js, err := json.Marshal(response)
 
 	if err != nil {
 		return err
@@ -65,7 +85,7 @@ func (app *application) apiResponse(w http.ResponseWriter, status int, data inte
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
+	w.WriteHeader(code)
 	w.Write(js)
 
 	return nil

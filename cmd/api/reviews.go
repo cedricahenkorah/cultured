@@ -21,7 +21,7 @@ func (app *application) getReviews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.apiResponse(w, http.StatusOK, reviews, nil)
+	err = app.apiResponse(w, http.StatusOK, reviews, "", nil)
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -47,7 +47,7 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.apiResponse(w, http.StatusOK, review, nil)
+	err = app.apiResponse(w, http.StatusOK, review, "", nil)
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -61,19 +61,19 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&input)
 
 	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		return
 	}
 
 	if input.Title == "" || input.Content == "" || input.Rating < 1 || input.Rating > 5 {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		return
 	}
 
 	userID, ok := app.getUserIDFromContext(r)
 
 	if !ok {
-		app.clientError(w, http.StatusUnauthorized)
+		app.clientError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 		return
 	}
 
@@ -84,7 +84,7 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.apiResponse(w, http.StatusCreated, review, nil)
+	err = app.apiResponse(w, http.StatusCreated, review, "", nil)
 
 	if err != nil {
 		app.errorLog.Println(err)

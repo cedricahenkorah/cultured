@@ -41,7 +41,7 @@ func (app *application) requireAuth(next http.Handler) http.Handler {
 		userID := app.authenticatedUser(r)
 
 		if userID == 0 {
-			app.clientError(w, http.StatusUnauthorized)
+			app.clientError(w, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 			return
 		}
 

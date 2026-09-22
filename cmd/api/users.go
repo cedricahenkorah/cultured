@@ -20,7 +20,7 @@ func (app *application) signUp(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&input)
 
 	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		return
 	}
 
@@ -30,19 +30,19 @@ func (app *application) signUp(w http.ResponseWriter, r *http.Request) {
 	parsedEmail, err := mail.ParseAddress(input.Email)
 
 	if err != nil || parsedEmail.Address != input.Email {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		return
 	}
 
 	if input.Name == "" || len(input.Email) > 254 || len(input.Password) < 8 {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
 		return
 	}
 
 	id, err := app.users.CreateUser(r.Context(), input.Name, input.Email, input.Password)
 
 	if err == models.ErrDuplicateEmail {
-		app.clientError(w, http.StatusConflict)
+		app.clientError(w, http.StatusConflict, models.ErrDuplicateEmail.Error())
 		return
 	} else if err != nil {
 		app.serverError(w, err)

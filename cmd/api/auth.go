@@ -18,21 +18,21 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&input)
 
 	if err != nil {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, "")
 		return
 	}
 
 	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
 
 	if input.Email == "" || input.Password == "" {
-		app.clientError(w, http.StatusBadRequest)
+		app.clientError(w, http.StatusBadRequest, models.ErrInvalidCredentials.Error())
 		return
 	}
 
 	id, err := app.users.Authenticate(r.Context(), input.Email, input.Password)
 
 	if err == models.ErrInvalidCredentials {
-		app.clientError(w, http.StatusUnauthorized)
+		app.clientError(w, http.StatusUnauthorized, models.ErrInvalidCredentials.Error())
 		return
 	} else if err != nil {
 		app.serverError(w, err)
