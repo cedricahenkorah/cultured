@@ -82,7 +82,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	infoLog.Printf("cultured %s is starting on %s", cfg.env, cfg.port)
+	infoLog.Printf("cultured %s is starting on %s", cfg.env, srv.Addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
 }
