@@ -17,14 +17,16 @@ func (app *application) routes() http.Handler {
 	router.Group(func(r chi.Router) {
 		r.Use(app.requireAuth)
 
-		r.Get("/", app.getReviews)
-		r.Get("/review/{id}", app.getReview)
-		r.Post("/review/create", app.createReview)
+		r.Get("/v1/review", app.getReviews)
+		r.Get("/v1/review/{id}", app.getReview)
+		r.Post("/v1/review/create", app.createReview)
 	})
 
-	router.Post("/user/signup", app.signUp)
-	router.Post("/user/login", app.login)
-	router.Post("/user/logout", app.logout)
+	router.Get("/v1/healthcheck", app.healthcheck)
+
+	router.Post("/v1/user/signup", app.signUp)
+	router.Post("/v1/user/login", app.login)
+	router.Post("/v1/user/logout", app.logout)
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 
