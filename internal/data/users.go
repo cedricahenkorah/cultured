@@ -35,8 +35,10 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
         VALUES ($1, $2, $3)
         RETURNING id`
 
+	args := []any{name, email, string(hashedPassword)}
+
 	var id int64
-	err = m.DB.QueryRow(ctx, stmt, name, email, string(hashedPassword)).Scan(&id)
+	err = m.DB.QueryRow(ctx, stmt, args...).Scan(&id)
 
 	if err != nil {
 		var pgErr *pgconn.PgError

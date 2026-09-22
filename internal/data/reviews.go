@@ -23,14 +23,15 @@ type ReviewModel struct {
 }
 
 func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating int, userID int64) (*Review, error) {
-	stmt := `INSERT INTO reviews (user_id, title, content, rating)
+	query := `INSERT INTO reviews (user_id, title, content, rating)
 	VALUES ($1, $2, $3, $4)
-	RETURNING id, user_id, title, content, rating, created_at, updated_at
-`
+	RETURNING id, user_id, title, content, rating, created_at, updated_at`
+
+	args := []any{userID, title, content, rating}
 
 	r := &Review{}
 
-	err := m.DB.QueryRow(ctx, stmt, userID, title, content, rating).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
+	err := m.DB.QueryRow(ctx, query, args...).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
 
 	if err != nil {
 		return nil, err
@@ -42,9 +43,9 @@ func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating 
 func (m *ReviewModel) Get(ctx context.Context, id int64) (*Review, error) {
 	r := &Review{}
 
-	stmt := `SELECT id, user_id, title, content, rating, created_at FROM reviews WHERE id = $1`
+	query := `SELECT id, user_id, title, content, rating, created_at FROM reviews WHERE id = $1`
 
-	err := m.DB.QueryRow(ctx, stmt, id).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
+	err := m.DB.QueryRow(ctx, query, id).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
 
 	if err == pgx.ErrNoRows {
 		return nil, ErrNoRecord
@@ -56,13 +57,13 @@ func (m *ReviewModel) Get(ctx context.Context, id int64) (*Review, error) {
 }
 
 func (m *ReviewModel) GetAll(ctx context.Context) ([]*Review, error) {
-	stmt := `
+	query := `
     SELECT id, user_id, title, content, rating, created_at
     FROM reviews
     ORDER BY created_at DESC, id DESC Limit 10
 	`
 
-	rows, err := m.DB.Query(ctx, stmt)
+	rows, err := m.DB.Query(ctx, query)
 
 	if err != nil {
 		return nil, err
