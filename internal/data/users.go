@@ -21,7 +21,8 @@ type User struct {
 }
 
 type UserModel struct {
-	DB *pgxpool.Pool
+	DB           *pgxpool.Pool
+	queryTimeout time.Duration
 }
 
 func (m *UserModel) CreateUser(ctx context.Context, name, email, password string) (int64, error) {
@@ -38,6 +39,11 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
 	args := []any{name, email, string(hashedPassword)}
 
 	var id int64
+
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
+
 	err = m.DB.QueryRow(ctx, stmt, args...).Scan(&id)
 
 	if err != nil {
@@ -63,6 +69,10 @@ func (m *UserModel) Authenticate(ctx context.Context, email, password string) (i
         FROM users
         WHERE email = $1`
 
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
+
 	err := m.DB.QueryRow(ctx, stmt, email).Scan(&id, &passwordHash)
 
 	if err == pgx.ErrNoRows {
@@ -86,6 +96,10 @@ func (m *UserModel) GetUserByID(ctx context.Context, id int64) (*User, error) {
 	stmt := `SELECT id, name, email, created_at, updated_at
     FROM users
     WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
 
 	err := m.DB.QueryRow(ctx, stmt, id).Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt, &u.UpdatedAt)
 

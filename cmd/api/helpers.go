@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"runtime/debug"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -89,4 +91,19 @@ func (app *application) apiResponse(w http.ResponseWriter, code int, data any, m
 	w.Write(js)
 
 	return nil
+}
+
+func parseTimeDuration(value string, fallback time.Duration) time.Duration {
+	if value == "" {
+		return fallback
+	}
+
+	duration, err := time.ParseDuration(value)
+
+	if err != nil {
+		log.Printf("invalid query timeout %q; using default %s", value, fallback)
+		return fallback
+	}
+
+	return duration
 }

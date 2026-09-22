@@ -19,7 +19,8 @@ type Review struct {
 }
 
 type ReviewModel struct {
-	DB *pgxpool.Pool
+	DB           *pgxpool.Pool
+	queryTimeout time.Duration
 }
 
 func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating int, userID int64) (*Review, error) {
@@ -30,6 +31,10 @@ func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating 
 	args := []any{userID, title, content, rating}
 
 	r := &Review{}
+
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
 
 	err := m.DB.QueryRow(ctx, query, args...).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
 
@@ -44,6 +49,10 @@ func (m *ReviewModel) Get(ctx context.Context, id int64) (*Review, error) {
 	r := &Review{}
 
 	query := `SELECT id, user_id, title, content, rating, created_at FROM reviews WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
 
 	err := m.DB.QueryRow(ctx, query, id).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
 
@@ -62,6 +71,10 @@ func (m *ReviewModel) GetAll(ctx context.Context) ([]*Review, error) {
     FROM reviews
     ORDER BY created_at DESC, id DESC Limit 10
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
 
 	rows, err := m.DB.Query(ctx, query)
 
@@ -106,6 +119,10 @@ RETURNING id, user_id, title, content, rating, created_at, updated_at;`
 
 	r := &Review{}
 
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
+
 	err := m.DB.QueryRow(ctx, query, args...).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
 
 	if err == pgx.ErrNoRows {
@@ -125,6 +142,10 @@ func (m *ReviewModel) Delete(ctx context.Context, id, userID int64) error {
 	args := []any{id, userID}
 
 	var deletedID int64
+
+	ctx, cancel := context.WithTimeout(ctx, m.queryTimeout)
+
+	defer cancel()
 
 	err := m.DB.QueryRow(ctx, query, args...).Scan(&deletedID)
 

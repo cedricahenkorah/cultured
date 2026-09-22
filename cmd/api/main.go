@@ -22,7 +22,8 @@ type config struct {
 	port int
 	env  string
 	db   struct {
-		dsn string
+		dsn          string
+		queryTimeout time.Duration
 	}
 }
 
@@ -43,7 +44,8 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "HTTP network port")
 	flag.StringVar(&cfg.db.dsn, "dsn", os.Getenv("DATABASE_URL"), "PostgreSQL DSN")
-	flag.StringVar(&cfg.env, "env", os.Getenv("ENV"), "Environment(development|staging|production)")
+	flag.DurationVar(&cfg.db.queryTimeout, "queryTimeout", parseTimeDuration(os.Getenv("DATABASE_QUERY_TIMEOUT"), 3*time.Second), "PostgreSQL Query Timeout")
+	flag.StringVar(&cfg.env, "env", os.Getenv("ENV"), "Environment(developmentundefined: parseTimeDuration|staging|production)")
 	flag.Parse()
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -68,7 +70,7 @@ func main() {
 	app := &application{
 		errorLog:       errorLog,
 		infoLog:        infoLog,
-		models:         data.New(db),
+		models:         data.New(db, cfg.db.queryTimeout),
 		sessionManager: sessionManager,
 		config:         cfg,
 	}

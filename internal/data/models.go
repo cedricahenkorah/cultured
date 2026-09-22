@@ -2,6 +2,7 @@ package data
 
 import (
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -17,9 +18,9 @@ type Models struct {
 	Users   UserModel
 }
 
-func New(db *pgxpool.Pool) Models {
+func New(db *pgxpool.Pool, queryTimeout time.Duration) Models {
 	return Models{
-		Reviews: ReviewModel{DB: db},
-		Users:   UserModel{DB: db},
+		Reviews: ReviewModel{DB: db, queryTimeout: queryTimeout},
+		Users:   UserModel{DB: db, queryTimeout: queryTimeout},
 	}
 }
