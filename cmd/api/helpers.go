@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type contextKey string
@@ -34,4 +37,14 @@ func (app *application) getUserIDFromContext(r *http.Request) (int64, bool) {
 	userID, ok := r.Context().Value(contextKeyUser).(int64)
 
 	return userID, ok && userID > 0
+}
+
+func (app *application) readIDParam(r *http.Request) (int64, error) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+
+	if err != nil || id < 1 {
+		return 0, err
+	}
+
+	return id, nil
 }

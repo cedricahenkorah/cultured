@@ -4,9 +4,6 @@ import (
 	"cultured/internal/models"
 	"encoding/json"
 	"net/http"
-	"strconv"
-
-	"github.com/go-chi/chi/v5"
 )
 
 type createReviewRequest struct {
@@ -28,9 +25,9 @@ func (app *application) getReviews(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
+	id, err := app.readIDParam(r)
 
-	if err != nil || id < 1 {
+	if err != nil {
 		app.notFound(w)
 		return
 	}
