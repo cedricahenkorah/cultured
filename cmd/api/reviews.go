@@ -21,7 +21,12 @@ func (app *application) getReviews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(reviews)
+	err = app.apiResponse(w, http.StatusOK, reviews, nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +47,12 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(review)
+	err = app.apiResponse(w, http.StatusOK, review, nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
@@ -67,12 +77,17 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := app.reviews.Insert(r.Context(), input.Title, input.Content, input.Rating, userID)
+	review, err := app.reviews.Insert(r.Context(), input.Title, input.Content, input.Rating, userID)
 
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(id)
+	err = app.apiResponse(w, http.StatusCreated, review, nil)
+
+	if err != nil {
+		app.errorLog.Println(err)
+		app.serverError(w, err)
+	}
 }

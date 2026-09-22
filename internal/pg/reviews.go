@@ -12,19 +12,21 @@ type ReviewModel struct {
 	DB *pgxpool.Pool
 }
 
-func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating int, userID int64) (int64, error) {
+func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating int, userID int64) (*models.Review, error) {
 	stmt := `INSERT INTO reviews (user_id, title, content, rating)
 	VALUES ($1, $2, $3, $4)
-	RETURNING id`
+	RETURNING id, user_id, title, content, rating, created_at, updated_at
+`
 
-	var id int64
-	err := m.DB.QueryRow(ctx, stmt, userID, title, content, rating).Scan(&id)
+	r := &models.Review{}
+
+	err := m.DB.QueryRow(ctx, stmt, userID, title, content, rating).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return id, nil
+	return r, nil
 }
 
 func (m *ReviewModel) Get(ctx context.Context, id int64) (*models.Review, error) {
