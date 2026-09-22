@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cultured/internal/models"
+	"cultured/internal/data"
 	"encoding/json"
 	"net/http"
 )
@@ -13,7 +13,7 @@ type createReviewRequest struct {
 }
 
 func (app *application) getReviews(w http.ResponseWriter, r *http.Request) {
-	reviews, err := app.reviews.GetAll(r.Context())
+	reviews, err := app.models.Reviews.GetAll(r.Context())
 
 	if err != nil {
 		app.errorLog.Println(err)
@@ -37,9 +37,9 @@ func (app *application) getReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	review, err := app.reviews.Get(r.Context(), id)
+	review, err := app.models.Reviews.Get(r.Context(), id)
 
-	if err == models.ErrNoRecord {
+	if err == data.ErrNoRecord {
 		app.notFound(w, r)
 		return
 	} else if err != nil {
@@ -77,7 +77,7 @@ func (app *application) createReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	review, err := app.reviews.Insert(r.Context(), input.Title, input.Content, input.Rating, userID)
+	review, err := app.models.Reviews.Insert(r.Context(), input.Title, input.Content, input.Rating, userID)
 
 	if err != nil {
 		app.serverError(w, err)

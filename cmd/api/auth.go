@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cultured/internal/models"
+	"cultured/internal/data"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -25,14 +25,14 @@ func (app *application) login(w http.ResponseWriter, r *http.Request) {
 	input.Email = strings.ToLower(strings.TrimSpace(input.Email))
 
 	if input.Email == "" || input.Password == "" {
-		app.clientError(w, http.StatusBadRequest, models.ErrInvalidCredentials.Error())
+		app.clientError(w, http.StatusBadRequest, data.ErrInvalidCredentials.Error())
 		return
 	}
 
-	id, err := app.users.Authenticate(r.Context(), input.Email, input.Password)
+	id, err := app.models.Users.Authenticate(r.Context(), input.Email, input.Password)
 
-	if err == models.ErrInvalidCredentials {
-		app.clientError(w, http.StatusUnauthorized, models.ErrInvalidCredentials.Error())
+	if err == data.ErrInvalidCredentials {
+		app.clientError(w, http.StatusUnauthorized, data.ErrInvalidCredentials.Error())
 		return
 	} else if err != nil {
 		app.serverError(w, err)

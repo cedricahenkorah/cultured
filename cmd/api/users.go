@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cultured/internal/models"
+	"cultured/internal/data"
 	"encoding/json"
 	"net/http"
 	"net/mail"
@@ -39,10 +39,10 @@ func (app *application) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := app.users.CreateUser(r.Context(), input.Name, input.Email, input.Password)
+	id, err := app.models.Users.CreateUser(r.Context(), input.Name, input.Email, input.Password)
 
-	if err == models.ErrDuplicateEmail {
-		app.clientError(w, http.StatusConflict, models.ErrDuplicateEmail.Error())
+	if err == data.ErrDuplicateEmail {
+		app.clientError(w, http.StatusConflict, data.ErrDuplicateEmail.Error())
 		return
 	} else if err != nil {
 		app.serverError(w, err)

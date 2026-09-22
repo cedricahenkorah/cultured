@@ -1,15 +1,24 @@
-package pg
+package data
 
 import (
 	"context"
-	"cultured/internal/models"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type User struct {
+	ID           int64     `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"-"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
 
 type UserModel struct {
 	DB *pgxpool.Pool
@@ -33,7 +42,7 @@ func (m *UserModel) CreateUser(ctx context.Context, name, email, password string
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "users_email_key" {
-			return 0, models.ErrDuplicateEmail
+			return 0, ErrDuplicateEmail
 		}
 
 		return 0, err
@@ -56,7 +65,7 @@ func (m *UserModel) Authenticate(ctx context.Context, email, password string) (i
 	err := m.DB.QueryRow(ctx, stmt, email).Scan(&id, &passwordHash)
 
 	if err == pgx.ErrNoRows {
-		return 0, models.ErrInvalidCredentials
+		return 0, ErrInvalidCredentials
 	} else if err != nil {
 		return 0, err
 	}
@@ -64,14 +73,14 @@ func (m *UserModel) Authenticate(ctx context.Context, email, password string) (i
 	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 
 	if err != nil {
-		return 0, models.ErrInvalidCredentials
+		return 0, ErrInvalidCredentials
 	}
 
 	return id, nil
 }
 
-func (m *UserModel) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
-	u := &models.User{}
+func (m *UserModel) GetUserByID(ctx context.Context, id int64) (*User, error) {
+	u := &User{}
 
 	stmt := `SELECT id, name, email, created_at, updated_at
     FROM users
@@ -80,7 +89,7 @@ func (m *UserModel) GetUserByID(ctx context.Context, id int64) (*models.User, er
 	err := m.DB.QueryRow(ctx, stmt, id).Scan(&u.ID, &u.Name, &u.Email, &u.CreatedAt, &u.UpdatedAt)
 
 	if err == pgx.ErrNoRows {
-		return nil, models.ErrNoRecord
+		return nil, ErrNoRecord
 	} else if err != nil {
 		return nil, err
 	}

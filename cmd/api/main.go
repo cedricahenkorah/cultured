@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"cultured/internal/pg"
+	"cultured/internal/data"
 	"flag"
 	"fmt"
 	"log"
@@ -29,8 +29,7 @@ type config struct {
 type application struct {
 	errorLog       *log.Logger
 	infoLog        *log.Logger
-	reviews        *pg.ReviewModel
-	users          *pg.UserModel
+	models         data.Models
 	sessionManager *scs.SessionManager
 	config         config
 }
@@ -69,8 +68,7 @@ func main() {
 	app := &application{
 		errorLog:       errorLog,
 		infoLog:        infoLog,
-		reviews:        &pg.ReviewModel{DB: db},
-		users:          &pg.UserModel{DB: db},
+		models:         data.New(db),
 		sessionManager: sessionManager,
 		config:         cfg,
 	}

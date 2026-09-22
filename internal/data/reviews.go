@@ -1,24 +1,34 @@
-package pg
+package data
 
 import (
 	"context"
-	"cultured/internal/models"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Review struct {
+	ID        int64     `json:"id"`
+	UserID    *int64    `json:"user_id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	Rating    int       `json:"rating"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type ReviewModel struct {
 	DB *pgxpool.Pool
 }
 
-func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating int, userID int64) (*models.Review, error) {
+func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating int, userID int64) (*Review, error) {
 	stmt := `INSERT INTO reviews (user_id, title, content, rating)
 	VALUES ($1, $2, $3, $4)
 	RETURNING id, user_id, title, content, rating, created_at, updated_at
 `
 
-	r := &models.Review{}
+	r := &Review{}
 
 	err := m.DB.QueryRow(ctx, stmt, userID, title, content, rating).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt, &r.UpdatedAt)
 
@@ -29,15 +39,15 @@ func (m *ReviewModel) Insert(ctx context.Context, title, content string, rating 
 	return r, nil
 }
 
-func (m *ReviewModel) Get(ctx context.Context, id int64) (*models.Review, error) {
-	r := &models.Review{}
+func (m *ReviewModel) Get(ctx context.Context, id int64) (*Review, error) {
+	r := &Review{}
 
 	stmt := `SELECT id, user_id, title, content, rating, created_at FROM reviews WHERE id = $1`
 
 	err := m.DB.QueryRow(ctx, stmt, id).Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
 
 	if err == pgx.ErrNoRows {
-		return nil, models.ErrNoRecord
+		return nil, ErrNoRecord
 	} else if err != nil {
 		return nil, err
 	}
@@ -45,7 +55,7 @@ func (m *ReviewModel) Get(ctx context.Context, id int64) (*models.Review, error)
 	return r, nil
 }
 
-func (m *ReviewModel) GetAll(ctx context.Context) ([]*models.Review, error) {
+func (m *ReviewModel) GetAll(ctx context.Context) ([]*Review, error) {
 	stmt := `
     SELECT id, user_id, title, content, rating, created_at
     FROM reviews
@@ -60,10 +70,10 @@ func (m *ReviewModel) GetAll(ctx context.Context) ([]*models.Review, error) {
 
 	defer rows.Close()
 
-	reviews := []*models.Review{}
+	reviews := []*Review{}
 
 	for rows.Next() {
-		r := &models.Review{}
+		r := &Review{}
 
 		err = rows.Scan(&r.ID, &r.UserID, &r.Title, &r.Content, &r.Rating, &r.CreatedAt)
 
