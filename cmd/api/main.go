@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"cultured/internal/data"
+	"expvar"
 	"flag"
 	"log"
 	"os"
+	"runtime"
 	"sync"
 	"time"
 
@@ -36,6 +38,7 @@ type application struct {
 }
 
 func main() {
+
 	var cfg config
 
 	if err := godotenv.Load(); err != nil {
@@ -66,6 +69,25 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = pgxstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+
+	expvar.NewString("version").Set(version)
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
+	expvar.Publish("database", expvar.Func(func() any {
+		stats := db.Stat()
+
+		return map[string]any{
+			"total_conns":    stats.TotalConns(),
+			"acquired_conns": stats.AcquiredConns(),
+			"idle_conns":     stats.IdleConns(),
+			"max_conns":      stats.MaxConns(),
+		}
+
+	}))
+	expvar.Publish("timestamp", expvar.Func(func() any {
+		return time.Now().Unix()
+	}))
 
 	app := &application{
 		errorLog:       errorLog,

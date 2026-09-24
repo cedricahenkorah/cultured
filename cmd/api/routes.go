@@ -1,6 +1,7 @@
 package main
 
 import (
+	"expvar"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -8,7 +9,7 @@ import (
 )
 
 func (app *application) routes() http.Handler {
-	standardMiddleware := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
+	standardMiddleware := alice.New(app.metrics, app.recoverPanic, app.logRequest, secureHeaders)
 
 	router := chi.NewRouter()
 
@@ -26,6 +27,7 @@ func (app *application) routes() http.Handler {
 		r.Post("/v1/review/create", app.createReview)
 	})
 
+	router.Get("/debug/vars", expvar.Handler().ServeHTTP)
 	router.Get("/v1/healthcheck", app.healthcheck)
 
 	router.Post("/v1/user/signup", app.signUp)

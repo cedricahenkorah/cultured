@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"expvar"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func secureHeaders(next http.Handler) http.Handler {
@@ -48,5 +50,24 @@ func (app *application) requireAuth(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), contextKeyUser, userID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (app *application) metrics(next http.Handler) http.Handler {
+	totalRequestsReceived := expvar.NewInt("total_requests_received")
+	totalResponsesSent := expvar.NewInt("total_responses_sent")
+	totalProcessingTimeMicroseconds := expvar.NewInt("total_processing_time_μs")
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		totalRequestsReceived.Add(1)
+
+		next.ServeHTTP(w, r)
+
+		totalResponsesSent.Add(1)
+
+		duration := time.Now().Sub(start).Microseconds()
+		totalProcessingTimeMicroseconds.Add(duration)
 	})
 }
