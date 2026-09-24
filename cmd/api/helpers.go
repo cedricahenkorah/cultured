@@ -107,3 +107,15 @@ func parseTimeDuration(value string, fallback time.Duration) time.Duration {
 
 	return duration
 }
+
+func (app *application) background(fn func()) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.errorLog.Println(err)
+			}
+		}()
+
+		fn()
+	}()
+}

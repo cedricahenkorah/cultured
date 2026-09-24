@@ -49,5 +49,14 @@ func (app *application) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.background(func() {
+		app.sendMail(input.Email)
+	})
+
 	json.NewEncoder(w).Encode(id)
+}
+
+/*placeholder email function; logs the email address */
+func (app *application) sendMail(email string) {
+	app.infoLog.Printf("Sending email to %s", email)
 }
