@@ -4,10 +4,9 @@ import (
 	"context"
 	"cultured/internal/data"
 	"flag"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/alexedwards/scs/pgxstore"
@@ -33,6 +32,7 @@ type application struct {
 	models         data.Models
 	sessionManager *scs.SessionManager
 	config         config
+	wg             sync.WaitGroup
 }
 
 func main() {
@@ -75,18 +75,11 @@ func main() {
 		config:         cfg,
 	}
 
-	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
-		ErrorLog:     errorLog,
-		Handler:      app.routes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
+	err = app.server()
 
-	infoLog.Printf("cultured %s is starting on %s", cfg.env, srv.Addr)
-	err = srv.ListenAndServe()
-	errorLog.Fatal(err)
+	if err != nil {
+		errorLog.Print(err)
+	}
 }
 
 func openDB(dsn string) (*pgxpool.Pool, error) {
